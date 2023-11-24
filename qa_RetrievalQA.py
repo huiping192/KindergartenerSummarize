@@ -7,10 +7,13 @@ from langchain.prompts import PromptTemplate
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.document_loaders import TextLoader
 from langchain.vectorstores.faiss import FAISS
+import langchain
 
 load_dotenv()
 
-llm = ChatOpenAI(model_name='gpt-3.5-turbo', temperature=0, verbose=True)
+langchain.verbose = True
+
+llm = ChatOpenAI(model_name='gpt-3.5-turbo', temperature=0)
 
 
 @st.cache_resource
@@ -43,8 +46,7 @@ chain_type_kwargs = {"prompt": prompt_qa}
 chain = RetrievalQA.from_chain_type(llm=llm,
                                     chain_type="stuff",
                                     retriever=vector_store.as_retriever(),
-                                    chain_type_kwargs=chain_type_kwargs,
-                                    verbose=True)
+                                    chain_type_kwargs=chain_type_kwargs)
 
 st.title("幼稚園QA")
 
