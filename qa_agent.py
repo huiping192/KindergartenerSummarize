@@ -64,23 +64,20 @@ if 'chat_history' not in st.session_state:
 # 聊天UI
 st.title("子供幼稚園QA")
 
-# 输入框
-user_input = st.text_input("質問を入力してください", key="input")
+if 'messages' not in st.session_state:
+    st.session_state['messages'] = []
 
-if st.button("submit"):
-    # 验证输入
-    if not user_input.strip():
-        st.error("Please enter text.")
+for message in st.session_state.messages:
+    if message["role"] == "user":
+        st.chat_message("user").markdown(message["content"])
     else:
-        st.session_state.chat_history.append(f"You: {user_input}")
-        try:
-            with st.spinner("Please wait..."):
-                answer = st.session_state.qa_manager.run(user_input)
-                # 更新聊天历史
-                st.session_state.chat_history.append(f"AI: {answer}")
-        except Exception as e:
-            st.exception(f"Exception: {e}")
+        st.chat_message("assistant").markdown(message["content"])
 
-# 显示聊天历史
-for message in st.session_state.chat_history:
-    st.text(message)
+user_query = st.chat_input("質問を入力してください")
+
+if user_query:
+    st.chat_message("user").markdown(user_query)
+    st.session_state.messages.append({"role": "user", "content": user_query})
+    answer = st.session_state.qa_manager.run(user_query)
+    st.chat_message("assistant").markdown(answer)
+    st.session_state.messages.append({"role": "assistant", "content": answer})
