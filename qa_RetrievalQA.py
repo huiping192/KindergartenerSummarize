@@ -70,11 +70,11 @@ for message in st.session_state.messages:
     else:
         st.chat_message("assistant").markdown(message["content"])
 
-prompt = st.chat_input("質問を入力してください")
+user_query = st.chat_input("質問を入力してください")
 
-if prompt:
-    st.chat_message("user").markdown(prompt)
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    answer = chain.run(prompt)
+if user_query:
+    st.chat_message("user").markdown(user_query)
+    st.session_state.messages.append({"role": "user", "content": user_query})
+    answer = chain.run(user_query)
     st.chat_message("assistant").markdown(answer)
     st.session_state.messages.append({"role": "assistant", "content": answer})
