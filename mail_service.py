@@ -21,7 +21,7 @@ class MailService:
         self.imap_connection = imaplib.IMAP4_SSL(self.imap_server)
         self.imap_connection.login(self.user, self.password)
 
-    def receive_mails(self, sender, days=5, max_mails=5):
+    def receive_mails(self, sender, days=7, max_mails=10):
         if self.imap_connection is None:
             self.imap_connect()
         # 选择"Inbox"文件夹
