@@ -2,34 +2,45 @@ import streamlit as st
 from dotenv import load_dotenv
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA
-from langchain.embeddings import OpenAIEmbeddings
+from langchain.embeddings import OpenAIEmbeddings, OllamaEmbeddings
+from langchain.llms.ollama import Ollama
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.document_loaders import TextLoader
 from langchain.vectorstores.faiss import FAISS
 import langchain
 
+with st.sidebar:
+    llm_type = st.selectbox(
+        'LLM選んでください',
+        ('gpt-3.5-turbo', 'llama2'))
+
 load_dotenv()
 
 langchain.verbose = True
 
-llm = ChatOpenAI(model_name='gpt-3.5-turbo', temperature=0)
-
+if llm_type == "llama2":
+    llm = Ollama(base_url="http://localhost:11434", model="llama2")
+else:
+    llm = ChatOpenAI(model_name='gpt-3.5-turbo', temperature=0)
 
 @st.cache_resource
-def load_data():
+def load_data(llm_type):
     text_splitter = CharacterTextSplitter(
         chunk_size=1000,
         chunk_overlap=100
     )
     loader = TextLoader("./content.txt")
-    embeddings = OpenAIEmbeddings()
+    if llm_type == "llama2":
+        embeddings = OllamaEmbeddings(base_url="http://localhost:11434", model="llama2")
+    else:
+        embeddings = OpenAIEmbeddings()
     documents = loader.load()
     docs = text_splitter.split_documents(documents)
     return FAISS.from_documents(docs, embeddings)
 
 
-vector_store = load_data()
+vector_store = load_data(llm_type=llm_type)
 prompt_template_qa = """あなたは親切で優しいアシスタントです。丁寧に、日本語でお答えください！
 もし以下の情報が探している情報に関連していない場合は、わかりませんと答えてください。
 
@@ -65,5 +76,5 @@ if prompt:
     st.chat_message("user").markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
     answer = chain.run(prompt)
-    st.chat_message("bot").markdown(answer)
+    st.chat_message("assistant").markdown(answer)
     st.session_state.messages.append({"role": "assistant", "content": answer})
