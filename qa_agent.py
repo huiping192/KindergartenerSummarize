@@ -6,7 +6,10 @@ from langchain.vectorstores import FAISS
 from langchain.chat_models import ChatOpenAI
 import streamlit as st
 from langchain.agents.agent_toolkits import create_retriever_tool, create_conversational_retrieval_agent
+from langchain.agents import AgentType, initialize_agent, load_tools
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class QAManager:
     agent_executor = None
@@ -15,6 +18,8 @@ class QAManager:
     docsearch = None
 
     def configure(self):
+        llm = ChatOpenAI(model_name='gpt-3.5-turbo', temperature=0)
+
         # read data from the file and put them into a variable called raw_text
         loader = TextLoader("./content.txt")
         documents = loader.load()
@@ -30,19 +35,22 @@ class QAManager:
         self.docsearch = FAISS.from_documents(docs, self.embeddings)
 
         retriever = self.docsearch.as_retriever()
-        tool = create_retriever_tool(
+        retriever_tool = create_retriever_tool(
             retriever,
             "search_child_activities",
             "Searches and returns documents regarding the child activities and information in the kindergarten."
         )
-        tools = [tool]
-        llm = ChatOpenAI(model_name='gpt-3.5-turbo', temperature=0)
+
+        tools = load_tools(["openweathermap-api"], llm)
+
+        tools.append(retriever_tool)
 
         system_message = SystemMessage(
             content=(
                 "Do your best to answer the questions. "
                 "Feel free to use any tools available to look up "
                 "relevant information, only if necessary"
+                "Location: Saitama, Japan"
             )
         )
         self.agent_executor = create_conversational_retrieval_agent(llm, tools, system_message=system_message,
@@ -72,6 +80,7 @@ for message in st.session_state.messages:
         st.chat_message("user").markdown(message["content"])
     else:
         st.chat_message("assistant").markdown(message["content"])
+
 
 user_query = st.chat_input("質問を入力してください")
 
