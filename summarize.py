@@ -25,7 +25,7 @@ Suggestions:
 
 format like:
 
-date and week: (example: 2023-10-30 月曜日)
+date and day the week: (example: 2023-10-30 月曜日)
 
 今日やったこと
  -  list of child activities in  kindergarten
